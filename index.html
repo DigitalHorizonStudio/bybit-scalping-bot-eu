@@ -3,37 +3,34 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b1020">
 <title>Bybit Scalping Monitor</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#0b1020;color:#edf3ff;font:15px Arial,sans-serif}
-main{max-width:950px;margin:auto;padding:18px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-h1{font-size:23px;margin:0}
-h2{font-size:16px;margin:0 0 15px}
-.sub,.muted{color:#91a2c2;font-size:12px}
+main{max-width:1000px;margin:auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:22px;margin:0}h2{font-size:16px;margin:0 0 14px}
+.muted{color:#91a2c2;font-size:12px}
 .tag{background:#392d17;color:#ffd36a;border:1px solid #80652b;border-radius:20px;padding:7px 12px;font-size:11px;font-weight:bold}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.card{background:#131d32;border:1px solid #293957;border-radius:15px;padding:15px;margin-bottom:12px;min-width:0}
-.value{font-size:23px;font-weight:bold;margin-top:6px;overflow-wrap:anywhere}
-.layout{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-top:12px}
+.card{background:#131d32;border:1px solid #293957;border-radius:14px;padding:14px;margin-bottom:12px;min-width:0}
+.value{font-size:22px;font-weight:bold;margin-top:6px;overflow-wrap:anywhere}
+.layout{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-top:10px}
 .coins{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.coin{background:#1b2943;border-radius:11px;padding:12px;min-width:0}
-.coin b{font-size:13px}
+.coin{background:#1b2943;border-radius:10px;padding:11px;min-width:0}
 .price{font-size:17px;font-weight:bold;margin:7px 0;overflow-wrap:anywhere}
-.good{color:#28d69a}.bad{color:#ff7185}
+.good{color:#28d69a}.bad{color:#ff7185}.yellow{color:#ffd36a}
 .row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #293957;font-size:12px}
 .row:last-child{border:0}
 button{border:0;border-radius:9px;padding:11px 13px;background:#ffd36a;color:#171717;font-weight:bold;cursor:pointer}
 button.secondary{background:#263957;color:white}
-button:disabled{opacity:.5}
 .controls{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}
 label{display:block;color:#91a2c2;font-size:12px;margin-top:10px}
 input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #293957;background:#0c1527;color:white}
 .notice{padding:12px;border:1px solid #79602b;background:#2b2518;color:#f5dfab;border-radius:11px;font-size:11px;margin-top:12px;line-height:1.5}
-#log{max-height:200px;overflow:auto}
+#log{max-height:260px;overflow:auto}
 footer{text-align:center;color:#91a2c2;font-size:10px;margin:20px}
 @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}
 @media(max-width:430px){.coins{grid-template-columns:1fr}}
@@ -44,70 +41,75 @@ footer{text-align:center;color:#91a2c2;font-size:10px;margin:20px}
 <header>
  <div>
   <h1>⚡ Bybit Scalping Monitor</h1>
-  <div class="sub">Spot · Monitoraggio automatico · Simulazione</div>
+  <div class="muted">Spot · Monitoraggio automatico · Paper trading</div>
  </div>
- <span class="tag">PAPER TRADING</span>
+ <span class="tag">SOLO SIMULAZIONE</span>
 </header>
 
 <section class="grid">
- <div class="card"><div class="muted">Capitale virtuale</div><div class="value" id="capital">€80,00</div></div>
- <div class="card"><div class="muted">Risultato simulato</div><div class="value" id="pnl">€0,00</div></div>
- <div class="card"><div class="muted">Operazioni chiuse</div><div class="value" id="trades">0</div></div>
- <div class="card"><div class="muted">Connessione</div><div class="value" id="connection" style="font-size:16px">In attesa</div></div>
+ <div class="card"><div class="muted">Patrimonio virtuale</div><div class="value" id="equity">80,0000 USDT</div></div>
+ <div class="card"><div class="muted">Profitto / Perdita netta</div><div class="value" id="pnl">0,0000 USDT</div></div>
+ <div class="card"><div class="muted">Operazioni chiuse</div><div class="value" id="trades">0</div><div class="muted" id="winrate">Nessuna operazione</div></div>
+ <div class="card"><div class="muted">Connessione</div><div class="value yellow" id="connection" style="font-size:15px">Verifica...</div><div class="muted" id="updated">In attesa</div></div>
 </section>
 
 <div class="layout">
- <section class="card">
-  <h2>Mercato Bybit EU · Spot</h2>
-  <div class="coins" id="coins"><div class="muted">Caricamento prezzi...</div></div>
-  <div class="row"><span class="muted">Aggiornamento</span><b>Ogni 5 secondi</b></div>
-  <div class="row"><span class="muted">Ultima lettura</span><b id="updated">—</b></div>
- </section>
+<section class="card">
+ <h2>Mercato Spot</h2>
+ <div class="coins" id="coins"><div class="muted">Caricamento prezzi...</div></div>
+ <div class="row"><span class="muted">Frequenza aggiornamento</span><b>5 secondi</b></div>
+ <div class="row"><span class="muted">Validità dati</span><b>Massimo 15 secondi</b></div>
+</section>
 
- <section class="card">
-  <h2>Simulazione automatica</h2>
-  <div id="status" class="muted">Simulazione ferma</div>
-  <div class="controls">
-   <button id="start">Avvia</button>
-   <button class="secondary" id="pause">Pausa</button>
-   <button class="secondary" id="reset">Azzera</button>
-  </div>
-  <label>Capitale virtuale (€)</label>
-  <input id="budget" type="number" min="10" max="99" value="80">
-  <label>Importo per operazione (€)</label>
-  <input id="stake" type="number" min="5" max="25" value="10">
-  <label>Perdita massima giornaliera (€)</label>
-  <input id="daily" type="number" min="1" max="5" step="0.5" value="2">
-  <label>Commissione stimata per lato (%)</label>
-  <input id="fee" type="number" min="0" max="1" step="0.01" value="0.10">
- </section>
+<section class="card">
+ <h2>Configurazione</h2>
+ <div id="status" class="yellow">Simulazione ferma</div>
+ <div class="controls">
+  <button id="start">Avvia</button>
+  <button class="secondary" id="pause">Pausa ingressi</button>
+  <button class="secondary" id="reset">Azzera</button>
+ </div>
+ <label>Capitale iniziale virtuale (USDT)</label>
+ <input id="budget" type="number" min="10" max="99" value="80">
+ <label>Importo per operazione (USDT)</label>
+ <input id="stake" type="number" min="5" max="25" value="10">
+ <label>Perdita massima giornaliera (USDT)</label>
+ <input id="daily" type="number" min="1" max="5" step="0.5" value="2">
+ <label>Commissione stimata per lato (%)</label>
+ <input id="fee" type="number" min="0" max="1" step="0.01" value="0.10">
+</section>
 </div>
 
 <div class="layout">
- <section class="card">
-  <h2>Segnali di mercato</h2>
-  <div id="signals" class="muted">In attesa dei dati...</div>
-  <p class="muted">Il segnale osserva il movimento del prezzo nell'ultimo minuto circa e lo spread. Non è una previsione.</p>
- </section>
- <section class="card">
-  <h2>Posizione simulata</h2>
-  <div id="position" class="muted">Nessuna posizione aperta.</div>
- </section>
+<section class="card">
+ <h2>Segnali di mercato</h2>
+ <div id="signals" class="muted">In attesa dei dati...</div>
+ <p class="muted">Momentum calcolato sul movimento locale di circa 45 secondi. Non è una previsione.</p>
+</section>
+<section class="card">
+ <h2>Posizione aperta</h2>
+ <div id="position" class="muted">Nessuna posizione aperta.</div>
+</section>
 </div>
 
 <section class="card">
- <h2>Registro attività</h2>
- <div id="log" class="muted">Dashboard avviata.</div>
+ <h2>Statistiche</h2>
+ <div class="row"><span>Operazioni positive</span><b id="wins">0</b></div>
+ <div class="row"><span>Operazioni negative</span><b id="losses">0</b></div>
+ <div class="row"><span>Percentuale positiva</span><b id="rate">0%</b></div>
+ <div class="row"><span>Perdita giornaliera accumulata</span><b id="dayloss">0,0000 USDT</b></div>
+ <div class="row"><span>Saldo disponibile</span><b id="cash">80,0000 USDT</b></div>
+</section>
+
+<section class="card">
+ <h2>Registro dettagliato</h2>
+ <div id="log" class="muted">Dashboard pronta.</div>
 </section>
 
 <div class="notice">
- <b>ATTENZIONE:</b> questa applicazione è esclusivamente dimostrativa.
- Non invia ordini a Bybit, non accede al tuo conto e non utilizza denaro reale.
- Le operazioni sono simulate nel browser. Commissioni, spread, slippage e liquidità
- reali possono modificare sensibilmente i risultati. Non esiste alcuna garanzia
- di profitto. Non inserire API Key o API Secret in questa pagina.
+ <b>IMPORTANTE:</b> applicazione dimostrativa. Non invia ordini a Bybit, non accede al tuo conto e non utilizza denaro reale. Tutti gli importi sono virtuali e denominati in USDT, non convertiti in euro. I dati possono interrompersi e i risultati simulati non dimostrano redditività. Le commissioni sono soltanto stime. Non inserire mai API Key o API Secret in questa pagina.
 </div>
-<footer>Prototipo indipendente a scopo informativo e didattico · Non affiliato a Bybit</footer>
+<footer>Prototipo indipendente · Non affiliato a Bybit · Nessuna garanzia di profitto</footer>
 </main>
 
 <script>
@@ -115,38 +117,32 @@ footer{text-align:center;color:#91a2c2;font-size:10px;margin:20px}
 
 const SYMBOLS=["BTCUSDT","ETHUSDT","SOLUSDT"];
 const HOSTS=["https://api.bybit.eu","https://api.bytick.eu"];
-
 const $=id=>document.getElementById(id);
-const euro=n=>"€ "+Number(n).toFixed(2).replace(".",",");
-const priceFormat=n=>Number(n).toLocaleString("it-IT",{
- minimumFractionDigits:2,
- maximumFractionDigits:n<1?5:2
-});
-const percent=n=>(n>=0?"+":"")+n.toFixed(3)+"%";
 
-let prices={};
-let history={};
-let running=false;
-let capital=80;
-let pnl=0;
-let trades=0;
-let wins=0;
-let dayLoss=0;
-let position=null;
-let logs=[];
+const fmt=n=>Number(n).toFixed(4)+" USDT";
+const priceFmt=n=>Number(n).toLocaleString("it-IT",{
+ minimumFractionDigits:2,maximumFractionDigits:n<1?6:2
+});
+const pct=n=>(n>=0?"+":"")+n.toFixed(3)+"%";
+
+let prices={},history={};
+let running=false,capital=80,pnl=0;
+let trades=0,wins=0,losses=0,dayLoss=0;
+let position=null,logs=[],lastError="";
+let startingCapital=80;
 
 function log(message){
  logs.unshift(new Date().toLocaleTimeString("it-IT")+" · "+message);
  $("log").innerHTML="";
- logs.slice(0,12).forEach(item=>{
-  const div=document.createElement("div");
-  div.className="row";
-  div.textContent=item;
-  $("log").appendChild(div);
+ logs.slice(0,25).forEach(item=>{
+  const d=document.createElement("div");
+  d.className="row";
+  d.textContent=item;
+  $("log").appendChild(d);
  });
 }
 
-function settings(){
+function config(){
  return {
   budget:Math.max(10,Math.min(99,Number($("budget").value)||80)),
   stake:Math.max(5,Math.min(25,Number($("stake").value)||10)),
@@ -155,197 +151,220 @@ function settings(){
  };
 }
 
-async function getTicker(symbol){
- let lastError;
+function fresh(symbol){
+ return !!prices[symbol] && Date.now()-prices[symbol].received<15000;
+}
+
+async function fetchOne(symbol){
+ let error;
  for(const host of HOSTS){
   try{
-   const url=host+"/v5/market/tickers?category=spot&symbol="+symbol;
-   const response=await fetch(url,{cache:"no-store"});
-   if(!response.ok)throw new Error("HTTP "+response.status);
-   const data=await response.json();
-   if(data.retCode!==0||!data.result.list.length)
-    throw new Error(data.retMsg||"Risposta non valida");
-   return data.result.list[0];
-  }catch(error){lastError=error;}
+   const controller=new AbortController();
+   const timeout=setTimeout(()=>controller.abort(),7000);
+   try{
+    const url=host+"/v5/market/tickers?category=spot&symbol="+symbol;
+    const response=await fetch(url,{cache:"no-store",signal:controller.signal});
+    if(!response.ok)throw new Error("HTTP "+response.status);
+    const data=await response.json();
+    if(data.retCode!==0||!data.result?.list?.length)
+     throw new Error(data.retMsg||"Risposta non valida");
+    const t=data.result.list[0];
+    const last=Number(t.lastPrice),bid=Number(t.bid1Price),ask=Number(t.ask1Price);
+    if(!(last>0&&bid>0&&ask>0&&ask>=bid))throw new Error("Prezzi non validi");
+    return {symbol,last,bid,ask,change:Number(t.price24hPcnt||0)*100,received:Date.now()};
+   }finally{clearTimeout(timeout);}
+  }catch(e){error=e;}
  }
- throw lastError||new Error("Servizio non raggiungibile");
+ throw error||new Error("Servizio non raggiungibile");
 }
 
 async function refresh(){
- try{
-  const results=await Promise.all(SYMBOLS.map(getTicker));
-  const now=Date.now();
+ const results=await Promise.allSettled(SYMBOLS.map(fetchOne));
+ let successes=0;
+ results.forEach((r,i)=>{
+  const s=SYMBOLS[i];
+  if(r.status==="fulfilled"){
+   successes++;
+   prices[s]=r.value;
+   history[s]??=[];
+   history[s].push({time:r.value.received,price:r.value.last});
+   history[s]=history[s].filter(x=>r.value.received-x.time<180000);
+  }
+ });
 
-  results.forEach(t=>{
-   const symbol=t.symbol;
-   const last=Number(t.lastPrice);
-   const bid=Number(t.bid1Price);
-   const ask=Number(t.ask1Price);
-
-   if(!last||!bid||!ask)throw new Error("Prezzi incompleti");
-
-   prices[symbol]={
-    last,bid,ask,
-    change:Number(t.price24hPcnt||0)*100,
-    time:now
-   };
-
-   if(!history[symbol])history[symbol]=[];
-   history[symbol].push({time:now,price:last});
-   history[symbol]=history[symbol].filter(x=>now-x.time<180000);
-  });
-
+ const freshCount=SYMBOLS.filter(fresh).length;
+ if(freshCount===SYMBOLS.length){
   $("connection").textContent="Collegato";
   $("connection").className="value good";
-  $("updated").textContent=new Date().toLocaleTimeString("it-IT");
-
-  renderMarkets();
-  renderSignals();
-
-  if(running)strategy();
-  renderPosition();
-
- }catch(error){
-  $("connection").textContent="Errore dati";
+  lastError="";
+ }else if(freshCount>0){
+  $("connection").textContent="Parziale";
+  $("connection").className="value yellow";
+ }else{
+  $("connection").textContent="Non disponibile";
   $("connection").className="value bad";
-  log("Connessione ai prezzi non riuscita: "+error.message);
+ }
+
+ if(successes===0){
+  const err=results.find(x=>x.status==="rejected");
+  const msg=err?.reason?.message||"Errore di rete";
+  $("updated").textContent="Ultimo dato non disponibile";
+  if(msg!==lastError){log("Connessione interrotta: "+msg);lastError=msg;}
+ }else{
+  $("updated").textContent="Ultimo controllo: "+new Date().toLocaleTimeString("it-IT");
+ }
+
+ renderMarkets();
+ renderSignals();
+
+ // Gestisce le posizioni soltanto quando il prezzo del relativo asset è fresco.
+ if(position&&fresh(position.symbol))managePosition();
+ else if(running&&!position)tryEntry();
+
+ renderPosition();
+ updateStats();
+
+ if(position&&!fresh(position.symbol)){
+  $("status").textContent="Attesa dati aggiornati · posizione protetta";
  }
 }
 
 function renderMarkets(){
  $("coins").innerHTML="";
- SYMBOLS.forEach(symbol=>{
-  const p=prices[symbol];
-  const div=document.createElement("div");
-  div.className="coin";
-  const name=document.createElement("b");
-  name.textContent=symbol;
-  const value=document.createElement("div");
-  value.className="price";
-  value.textContent=priceFormat(p.last)+" USDT";
-  const change=document.createElement("div");
-  change.className=p.change>=0?"good":"bad";
-  change.textContent="24h "+percent(p.change);
-  const spread=document.createElement("div");
-  spread.className="muted";
-  spread.textContent="Spread "+(((p.ask-p.bid)/p.ask)*100).toFixed(3)+"%";
-  div.append(name,value,change,spread);
-  $("coins").appendChild(div);
+ SYMBOLS.forEach(s=>{
+  const p=prices[s];
+  const d=document.createElement("div");
+  d.className="coin";
+  if(!p){
+   d.textContent=s+" · Dati non disponibili";
+  }else{
+   const stale=!fresh(s);
+   d.innerHTML="<b>"+s+"</b><div class='price'>"+priceFmt(p.last)+" USDT</div>"+
+   "<div class='"+(p.change>=0?"good":"bad")+"'>24h "+pct(p.change)+"</div>"+
+   "<div class='muted'>Bid "+priceFmt(p.bid)+" · Ask "+priceFmt(p.ask)+"</div>"+
+   "<div class='"+(stale?"bad":"muted")+"'>"+(stale?"DATO OBSOLETO":"Spread "+(((p.ask-p.bid)/p.ask)*100).toFixed(4)+"%")+"</div>";
+  }
+  $("coins").appendChild(d);
  });
 }
 
-function momentum(symbol){
- const h=history[symbol]||[];
- if(h.length<2)return null;
+function momentum(s){
+ const h=history[s]||[];
+ if(!fresh(s)||h.length<2)return null;
  const now=Date.now();
  const old=h.find(x=>now-x.time>=45000)||h[0];
- return old.price?((prices[symbol].last-old.price)/old.price)*100:null;
+ return old.price?((prices[s].last-old.price)/old.price)*100:null;
 }
 
 function renderSignals(){
  $("signals").innerHTML="";
- SYMBOLS.forEach(symbol=>{
-  const p=prices[symbol];
-  const m=momentum(symbol);
-  const spread=(p.ask-p.bid)/p.ask*100;
-  let label="Neutrale";
-  let cls="muted";
-  if(m===null)label="Raccolta dati";
-  else if(m>=0.08&&spread<=0.12){label="Momentum positivo";cls="good";}
-  else if(m<=-0.08){label="Momentum negativo";cls="bad";}
-
+ SYMBOLS.forEach(s=>{
+  const p=prices[s],m=momentum(s);
+  let label="Raccolta dati",cls="muted";
+  if(!p||!fresh(s)){label="Dati non aggiornati";cls="bad";}
+  else if(m!==null){
+   const spread=(p.ask-p.bid)/p.ask*100;
+   if(m>=.08&&spread<=.12){label="Momentum positivo";cls="good";}
+   else if(m<=-.08){label="Momentum negativo";cls="bad";}
+   else label="Neutrale";
+  }
   const row=document.createElement("div");
   row.className="row";
   const left=document.createElement("span");
-  left.textContent=symbol+" · "+(m===null?"—":percent(m));
+  left.textContent=s+" · "+(m===null?"—":pct(m));
   const right=document.createElement("b");
-  right.className=cls;
-  right.textContent=label;
-  row.append(left,right);
-  $("signals").appendChild(row);
+  right.className=cls;right.textContent=label;
+  row.append(left,right);$("signals").appendChild(row);
  });
 }
 
 function updateStats(){
- $("capital").textContent=euro(capital);
- $("pnl").textContent=euro(pnl);
+ const equity=capital+(position?position.stake:0)+(position?unrealizedNet():0);
+ $("equity").textContent=fmt(equity);
+ $("cash").textContent=fmt(capital);
+ $("pnl").textContent=fmt(pnl);
  $("pnl").className="value "+(pnl>=0?"good":"bad");
  $("trades").textContent=trades;
+ $("wins").textContent=wins;
+ $("losses").textContent=losses;
+ $("rate").textContent=trades?(wins/trades*100).toFixed(1)+"%":"0%";
+ $("dayloss").textContent=fmt(dayLoss);
+ $("winrate").textContent=trades?(wins+" positive · "+losses+" negative"):"Nessuna operazione";
 }
 
-function pause(message){
- running=false;
- $("status").textContent="Simulazione in pausa";
- $("start").disabled=false;
- if(message)log(message);
+function unrealizedNet(){
+ if(!position||!fresh(position.symbol))return 0;
+ const p=prices[position.symbol],c=config();
+ const gross=(p.bid-position.entry)*position.quantity;
+ const fees=(position.entry+p.bid)*position.quantity*c.fee;
+ return gross-fees;
 }
 
-function strategy(){
- const cfg=settings();
+function tryEntry(){
+ if(!running||position)return;
+ const c=config();
+ if(dayLoss>=c.daily){stop("Limite di perdita giornaliera raggiunto.");return;}
+ if(capital<c.stake){stop("Saldo disponibile insufficiente.");return;}
 
- if(dayLoss>=cfg.daily){
-  pause("Limite di perdita giornaliera raggiunto.");
-  return;
- }
-
- if(position){
-  const p=prices[position.symbol];
-  const move=(p.bid-position.entry)/position.entry*100;
-  const gross=(p.bid-position.entry)*position.quantity;
-  const fees=(position.entry+p.bid)*position.quantity*cfg.fee;
-  const net=gross-fees;
-
-  if(move>=0.35)closePosition(p.bid,"Take profit");
-  else if(move<=-0.25)closePosition(p.bid,"Stop loss");
-  else if(Date.now()-position.opened>300000)closePosition(p.bid,"Uscita temporale");
-  else $("position").textContent="P&L netto stimato: "+euro(net);
-  return;
- }
-
- if(capital<cfg.stake){
-  pause("Capitale virtuale insufficiente.");
-  return;
- }
-
- for(const symbol of SYMBOLS){
-  const p=prices[symbol];
-  const m=momentum(symbol);
+ for(const s of SYMBOLS){
+  if(!fresh(s))continue;
+  const p=prices[s],m=momentum(s);
   const spread=(p.ask-p.bid)/p.ask*100;
-
-  if(m!==null&&m>=0.08&&spread<=0.12){
-   position={
-    symbol,
-    entry:p.ask,
-    quantity:cfg.stake/p.ask,
-    opened:Date.now()
-   };
-   log("Apertura virtuale "+symbol+" · "+euro(cfg.stake));
-   renderPosition();
+  if(m!==null&&m>=.08&&spread<=.12){
+   const quantity=c.stake/p.ask;
+   capital-=c.stake;
+   position={symbol:s,entry:p.ask,quantity,stake:c.stake,opened:Date.now()};
+   log("APERTURA VIRTUALE "+s+" · entrata Ask "+priceFmt(p.ask)+" · importo "+fmt(c.stake));
+   $("status").textContent="Paper trading attivo · posizione aperta";
+   updateStats();renderPosition();
    return;
   }
  }
 }
 
-function closePosition(exitPrice,reason){
+function managePosition(){
+ if(!position||!fresh(position.symbol))return;
+ const p=prices[position.symbol];
+ const movement=(p.bid-position.entry)/position.entry*100;
+ const age=Date.now()-position.opened;
+ if(movement>=.35)closePosition("Take profit");
+ else if(movement<=-.25)closePosition("Stop loss");
+ else if(age>=300000)closePosition("Uscita temporale");
+ else $("status").textContent=running?"Paper trading attivo · posizione monitorata":"Ingressi in pausa · gestione posizione attiva";
+}
+
+function closePosition(reason){
  if(!position)return;
- const cfg=settings();
- const p=position;
- const gross=(exitPrice-p.entry)*p.quantity;
- const fees=(p.entry+exitPrice)*p.quantity*cfg.fee;
+ const c=config(),p=prices[position.symbol];
+ if(!p||!fresh(position.symbol)){
+  log("Chiusura rinviata: prezzo non aggiornato.");
+  return;
+ }
+ const exit=p.bid;
+ const gross=(exit-position.entry)*position.quantity;
+ const fees=(position.entry+exit)*position.quantity*c.fee;
  const net=gross-fees;
+ const duration=Math.floor((Date.now()-position.opened)/1000);
+ const stake=position.stake;
 
+ capital+=stake+net;
  pnl+=net;
- capital+=net;
  trades++;
- if(net>0)wins++;
- if(net<0)dayLoss+=Math.abs(net);
+ if(net>=0)wins++;else{losses++;dayLoss+=Math.abs(net);}
 
- log("Chiusura "+p.symbol+" · "+reason+" · netto "+euro(net));
+ log("CHIUSURA "+position.symbol+" · "+reason+
+  " · entrata "+priceFmt(position.entry)+
+  " · uscita "+priceFmt(exit)+
+  " · lordo "+fmt(gross)+
+  " · commissioni "+fmt(fees)+
+  " · NETTO "+fmt(net)+
+  " · durata "+duration+" sec");
+
  position=null;
- updateStats();
- renderPosition();
+ updateStats();renderPosition();
 
- if(dayLoss>=cfg.daily)pause("Limite di perdita giornaliera raggiunto.");
+ if(dayLoss>=c.daily)stop("Limite di perdita giornaliera raggiunto.");
+ else $("status").textContent=running?"Paper trading attivo":"Simulazione in pausa";
 }
 
 function renderPosition(){
@@ -354,54 +373,72 @@ function renderPosition(){
   return;
  }
  const p=prices[position.symbol];
- if(!p)return;
+ if(!p){$("position").textContent="Posizione aperta · prezzo in attesa.";return;}
+ if(!fresh(position.symbol)){
+  $("position").textContent=position.symbol+" · Dati non aggiornati. Prezzo di uscita non stimato.";
+  return;
+ }
  const gross=(p.bid-position.entry)*position.quantity;
- const fees=(position.entry+p.bid)*position.quantity*settings().fee;
- $("position").textContent=
-  position.symbol+" · Entrata: "+priceFormat(position.entry)+
-  " · Prezzo attuale: "+priceFormat(p.bid)+
-  " · P&L netto stimato: "+euro(gross-fees);
+ const fees=(position.entry+p.bid)*position.quantity*config().fee;
+ const net=gross-fees;
+ const row=(a,b)=>"<div class='row'><span>"+a+"</span><b>"+b+"</b></div>";
+ $("position").innerHTML=
+ row("Asset",position.symbol)+
+ row("Importo investito",fmt(position.stake))+
+ row("Entrata (Ask)",priceFmt(position.entry)+" USDT")+
+ row("Uscita stimata (Bid)",priceFmt(p.bid)+" USDT")+
+ row("Quantità",position.quantity.toFixed(8))+
+ row("Commissioni stimate",fmt(fees))+
+ row("P&L netto stimato",(net>=0?"+":"")+fmt(net))+
+ row("Durata",Math.floor((Date.now()-position.opened)/1000)+" secondi");
+}
+
+function stop(message){
+ running=false;
+ $("start").disabled=false;
+ $("status").textContent=position?"Ingressi in pausa · posizione ancora monitorata":"Simulazione in pausa";
+ if(message)log(message);
 }
 
 $("start").onclick=()=>{
- if(!prices.BTCUSDT){log("Attendi il caricamento dei prezzi.");return;}
- if(!running){
-  if(trades===0&&pnl===0)capital=settings().budget;
-  running=true;
-  $("status").textContent="Paper trading automatico attivo";
-  $("start").disabled=true;
-  log("Simulazione avviata. Nessun ordine reale.");
-  updateStats();
-  strategy();
+ if(!SYMBOLS.some(fresh)){log("Avvio impossibile: attendi prezzi aggiornati.");return;}
+ const c=config();
+ if(trades===0&&pnl===0&&!position){
+  startingCapital=c.budget;capital=c.budget;
  }
+ running=true;
+ $("start").disabled=true;
+ $("status").textContent="Paper trading automatico attivo";
+ log("Simulazione avviata. Nessun ordine reale.");
+ updateStats();
+ tryEntry();
 };
 
-$("pause").onclick=()=>pause("Simulazione messa in pausa.");
+$("pause").onclick=()=>{
+ running=false;
+ $("start").disabled=false;
+ $("status").textContent=position?"Ingressi in pausa · posizione ancora monitorata":"Simulazione in pausa";
+ log("Nuovi ingressi sospesi. Eventuale posizione continua a essere monitorata.");
+};
 
 $("reset").onclick=()=>{
  running=false;
  position=null;
- capital=settings().budget;
- pnl=0;
- trades=0;
- wins=0;
- dayLoss=0;
- $("status").textContent="Simulazione ferma";
+ startingCapital=config().budget;
+ capital=startingCapital;pnl=0;
+ trades=0;wins=0;losses=0;dayLoss=0;
  $("start").disabled=false;
- updateStats();
- renderPosition();
- log("Simulazione azzerata.");
+ $("status").textContent="Simulazione azzerata";
+ log("Statistiche azzerate. Capitale iniziale: "+fmt(capital));
+ updateStats();renderPosition();
 };
 
 $("budget").addEventListener("change",()=>{
- if(trades===0&&!position){
-  capital=settings().budget;
-  updateStats();
- }
+ if(trades===0&&!position){capital=config().budget;startingCapital=capital;updateStats();}
 });
 
 updateStats();
-log("Dashboard pronta. Lettura dati pubblici in corso.");
+log("Dashboard aggiornata. In attesa dei dati pubblici.");
 refresh();
 setInterval(refresh,5000);
 </script>
