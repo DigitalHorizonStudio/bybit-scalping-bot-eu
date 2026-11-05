@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -143,7 +142,7 @@ const $=id=>document.getElementById(id);
 
 const fmt=n=>Number(n).toFixed(4)+" USDT";
 const priceFmt=n=>Number(n).toLocaleString("it-IT",{
- minimumFractionDigits:2,maximumFractionDigits:n<1?6:2
+ minimumFractionDigits:2,maximumSignificantDigits:10
 });
 const pct=n=>(n>=0?"+":"")+n.toFixed(3)+"%";
 
@@ -222,23 +221,26 @@ function validSymbol(item){
 
 
 async function loadUniverse(){
- const data=await request("/v5/market/instruments-info?category=spot");
- const list=data.result?.list||[];
-
- const found=list.filter(validSymbol).map(x=>({
-  symbol:x.symbol,
-  baseCoin:x.baseCoin,
-  quoteCoin:x.quoteCoin
- }));
-
- if(!found.length){
-  throw new Error("Elenco strumenti vuoto o non compatibile");
+ // Carica tutte le pagine disponibili: non fermarsi alla prima pagina API.
+ const foundMap=new Map();
+ let cursor="";
+ for(let page=0;page<10;page++){
+  const path="/v5/market/instruments-info?category=spot&limit=1000"+
+   (cursor?"&cursor="+encodeURIComponent(cursor):"");
+  const data=await request(path);
+  const list=data.result?.list||[];
+  list.filter(validSymbol).forEach(x=>foundMap.set(x.symbol,{
+   symbol:x.symbol,baseCoin:x.baseCoin,quoteCoin:x.quoteCoin
+  }));
+  const next=data.result?.nextPageCursor||"";
+  if(!next||next===cursor||!list.length)break;
+  cursor=next;
  }
-
+ const found=[...foundMap.values()];
+ if(!found.length)throw new Error("Elenco strumenti vuoto o non compatibile");
  universe=found;
  lastUniverseUpdate=Date.now();
-
- log("Elenco strumenti aggiornato: "+universe.length+" coppie.");
+ log("Elenco strumenti aggiornato: "+universe.length+" coppie USDT.");
 }
 
 
@@ -248,62 +250,50 @@ async function loadUniverse(){
 async function loadTickers(){
  const data=await request("/v5/market/tickers?category=spot");
  const all=data.result?.list||[];
-
- if(!all.length){
-  throw new Error("Bybit non ha restituito ticker");
- }
+ if(!all.length)throw new Error("Bybit non ha restituito ticker");
 
  const eligible=new Set(universe.map(x=>x.symbol));
+ const toTicker=t=>({
+  symbol:t.symbol,
+  last:Number(t.lastPrice),
+  bid:Number(t.bid1Price),
+  ask:Number(t.ask1Price),
+  turnover:Number(t.turnover24h||0),
+  change:Number(t.price24hPcnt||0)*100
+ });
+ const isUsable=t=>{
+  const symbol=t.symbol||"";
+  if(!/^[A-Z0-9]+USDT$/.test(symbol))return false;
+  const base=symbol.slice(0,-4);
+  if(EXCLUDED.has(base))return false;
+  if(/(2L|2S|3L|3S|5L|5S|UP|DOWN|BULL|BEAR)$/.test(base))return false;
+  return true;
+ };
+ const valid=t=>t.last>0&&t.bid>0&&t.ask>=t.bid&&
+  t.turnover>0&&Number.isFinite(t.turnover);
 
- const ranked=all
-  .filter(t=>{
-   if(eligible.size>0)return eligible.has(t.symbol);
-
-   const symbol=t.symbol||"";
-   if(!/^[A-Z0-9]+USDT$/.test(symbol))return false;
-
-   const base=symbol.slice(0,-4);
-   if(EXCLUDED.has(base))return false;
-   if(/(2L|2S|3L|3S|5L|5S|UP|DOWN|BULL|BEAR)$/.test(base))return false;
-
-   return true;
-  })
-  .map(t=>({
-   symbol:t.symbol,
-   last:Number(t.lastPrice),
-   bid:Number(t.bid1Price),
-   ask:Number(t.ask1Price),
-   turnover:Number(t.turnover24h||0),
-   change:Number(t.price24hPcnt||0)*100
-  }))
-  .filter(t=>
-   t.last>0&&
-   t.bid>0&&
-   t.ask>=t.bid&&
-   t.turnover>0&&
-   Number.isFinite(t.turnover)
-  )
-  .sort((a,b)=>b.turnover-a.turnover);
-
+ // Preferisce gli strumenti verificati; se l'elenco strumenti è incompleto,
+ // ripiega sull'intero elenco ticker USDT per non limitarsi a poche coppie.
+ let ranked=all.filter(t=>eligible.has(t.symbol)&&isUsable(t))
+  .map(toTicker).filter(valid).sort((a,b)=>b.turnover-a.turnover);
+ if(ranked.length<config().pairLimit){
+  const fallback=all.filter(isUsable).map(toTicker).filter(valid)
+   .sort((a,b)=>b.turnover-a.turnover);
+  if(fallback.length>ranked.length)ranked=fallback;
+ }
  const selected=ranked.slice(0,config().pairLimit);
- const now=Date.now();
- const next={};
-
+ const now=Date.now(),next={};
  selected.forEach(t=>{
   next[t.symbol]={...t,received:now};
-
   history[t.symbol]??=[];
-  history[t.symbol].push({
-   time:now,
-   price:t.last
-  });
-
-  history[t.symbol]=history[t.symbol].filter(
-   x=>now-x.time<=240000
-  );
+  history[t.symbol].push({time:now,price:t.last});
+  history[t.symbol]=history[t.symbol].filter(x=>now-x.time<=240000);
  });
-
  prices=next;
+ if(selected.length<config().pairLimit){
+  const diagnostic="Ticker API: "+all.length+" · coppie USDT valide: "+ranked.length;
+  if(diagnostic!==lastTickerDiagnostic){log(diagnostic);lastTickerDiagnostic=diagnostic;}
+ } else lastTickerDiagnostic="";
  return selected;
 }
 
