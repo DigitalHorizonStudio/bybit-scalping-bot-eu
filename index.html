@@ -242,25 +242,7 @@ async function loadUniverse(){
 }
 
 
-async function loadTickers(){
- const data=await request("/v5/market/tickers?category=spot");
- const all=data.result?.list||[];
- const eligible=new Set(universe.map(x=>x.symbol));
- const ranked=all
-  .filter(t=>eligible.has(t.symbol))
-  .map(t=>({
-   symbol:t.symbol,
-   last:Number(t.lastPrice),
-   bid:Number(t.bid1Price),
-   ask:Number(t.ask1Price),
-   turnover:Number(t.turnover24h||0),
-   change:Number(t.price24hPcnt||0)*100
-  }))
-  .filter(t=>
-   t.last>0&&t.bid>0&&t.ask>=t.bid&&
-   t.turnover>0&&Number.isFinite(t.turnover)
-  )
-  .sort((a,b)=>b.turnover-a.turnover);
+
 
  
 async function loadTickers(){
@@ -620,33 +602,7 @@ function managePosition(){
   "Ingressi in pausa · gestione posizione attiva";
 }
 
-async function refresh(){
- if(refreshBusy)return;
- refreshBusy=true;
- try{
-  if(!universe.length||Date.now()-lastUniverseUpdate>600000){
-   await loadUniverse();
-  }
-  const selected=await loadTickers();
-  if(!selected.length)throw new Error("Nessun ticker disponibile");
 
-  const active=selected.filter(t=>fresh(t.symbol)).length;
-  $("connection").textContent=active+" coppie aggiornate";
-  $("connection").className="value good";
-  $("updated").textContent="Ultimo controllo: "+
-   new Date().toLocaleTimeString("it-IT");
-  lastError="";
-
-  renderMarkets();
-  renderRanking(selected);
-  renderSignals();
-
-  const enough=Object.keys(history).some(s=>
-   getSamples(s,180)!==null&&fresh(s)
-  );
-  $("warmup").textContent=enough?
-   "Dati sufficienti per analizzare il trend.":
-   "Fase di osservazione: servono circa 3 minuti di dati.";
 
   
 async function refresh(){
